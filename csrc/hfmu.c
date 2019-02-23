@@ -15,7 +15,7 @@ static void loaded(void)
   static int argc = 1;
   hs_init(&argc, &argv_);
 
-  setup();
+  //setup();
 }
 
 
@@ -23,7 +23,12 @@ static void loaded(void)
 fmi2Component fmi2Instantiate(fmi2String a , fmi2Type b, fmi2String c, fmi2String d, const fmi2CallbackFunctions* e, fmi2Boolean f, fmi2Boolean g)
 {
   printf("hfmu.c: fmi2instantiate\n");
-  return  fmi2Instantiatee(a, b, c, d, e, f, g);
+  void* x = fmi2Instantiatee(a, b, c, d, e, f, g);
+  if(x == NULL)
+    printf("PTR IS NULL\n");
+  else
+    printf("PTR IS NOT NULL\n");
+  return x;
 }
 
 
