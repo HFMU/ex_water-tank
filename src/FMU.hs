@@ -8,6 +8,8 @@ import qualified Data.HashMap.Strict as HM
 import Debug.Trace
 import qualified Data.HaskellFMU.Types as T
 import qualified SVs
+import qualified Control.Monad.Writer as W
+--import qualified Control.Monad.Trans.Writer.Strict as W
 
 foreign export ccall setup :: IO ()
 setup :: IO ()
@@ -22,22 +24,29 @@ newtype MFMUState = MFMUState {mmax :: Int}
 mFMUState :: MFMUState
 mFMUState = MFMUState {mmax = 1}
 
-doStep :: T.DoStepFunType MFMUState
+doStep :: T.SVs -> T.UserState MFMUState -> IO (W.Writer [T.LogEntry] (T.DoStepResult MFMUState))
 doStep svs us@(T.UserState (MFMUState {mmax=m}))  =
-  let valve :: Maybe T.SVTypeVal =
+  let 
+    valve :: Maybe T.SVTypeVal =
         do
           trace (show m) (Just ())
           mM <- retrieveMinAndMaxLevel svs
           level <- getPortVal svs "level"
           calcValve level mM $ getPortVal svs "valve"
+    doStepResult :: T.DoStepResult MFMUState = 
+      case valve of 
+        Just v -> T.DoStepResult {T.dsrStatus = T.OK, T.dsrSvs = adjustPortVal svs "valve" v,
+                                T.dsrState = T.UserState (MFMUState {mmax = 2})}
+        Nothing -> T.DoStepResult {T.dsrStatus = T.Fatal, T.dsrSvs = svs, T.dsrState = us}
   in
-    case valve of
-      Just v -> return T.DoStepResult {T.dsrStatus = T.OK,
-                               T.dsrSvs = adjustPortVal svs "valve" v,
-                               T.dsrState = T.UserState (MFMUState {mmax = 2})}
-      Nothing -> return T.DoStepResult {T.dsrStatus = T.Fatal,
-                                T.dsrSvs = svs,
-                                T.dsrState = us}
+    do
+      a :: W.Writer [T.LogEntry] () <- output "doStep completed" 
+      b :: W.Writer [T.LogEntry] (T.DoStepResult MFMUState) <- W.writer (a, doStepResult)
+      return b
+
+output :: String -> IO (W.Writer [T.LogEntry] ())
+output x = return $ W.tell [T.LogEntry T.LogInfo x]
+    
 
 retrieveMinAndMaxLevel :: T.SVs -> Maybe (T.SVTypeVal, T.SVTypeVal)
 retrieveMinAndMaxLevel par =

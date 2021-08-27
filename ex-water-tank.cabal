@@ -55,7 +55,7 @@ foreign-library watertankController
 
   other-modules: FMU SVs
 
-  build-depends:       base >=4.11 && <4.12, HaskellFMU, unordered-containers, tuple
+  build-depends:       base >=4.11 && <4.15, HaskellFMU, unordered-containers, tuple, mtl, transformers
 
   hs-source-dirs:      src
 
