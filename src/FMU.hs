@@ -41,13 +41,11 @@ doStep svs us@(T.UserState (MFMUState {mmax=m}))  =
         Nothing -> T.DoStepResult {T.dsrStatus = T.Fatal, T.dsrSvs = svs, T.dsrState = us}
   in
     do
-      a :: W.Writer [T.LogEntry] () <- output "doStep completed" 
-      b :: W.Writer [T.LogEntry] (T.DoStepResult MFMUState) <- W.writer (a, doStepResult)
-      return b
-
--- TODO: SWITCH TO LOGGINGT
-output :: String -> IO (W.Writer [T.LogEntry] ())
-output x = return $ W.tell [T.LogEntry T.LogInfo x]
+      return $ 
+        do 
+          W.tell [T.LogEntry T.LogInfo "doStep completed"]
+          return doStepResult
+      
     
 
 retrieveMinAndMaxLevel :: T.SVs -> Maybe (T.SVTypeVal, T.SVTypeVal)
