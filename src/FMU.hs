@@ -24,6 +24,7 @@ newtype MFMUState = MFMUState {mmax :: Int}
 mFMUState :: MFMUState
 mFMUState = MFMUState {mmax = 1}
 
+-- TODO: SWITCH TO LOGGING T
 doStep :: T.SVs -> T.UserState MFMUState -> IO (W.Writer [T.LogEntry] (T.DoStepResult MFMUState))
 doStep svs us@(T.UserState (MFMUState {mmax=m}))  =
   let 
@@ -44,6 +45,7 @@ doStep svs us@(T.UserState (MFMUState {mmax=m}))  =
       b :: W.Writer [T.LogEntry] (T.DoStepResult MFMUState) <- W.writer (a, doStepResult)
       return b
 
+-- TODO: SWITCH TO LOGGINGT
 output :: String -> IO (W.Writer [T.LogEntry] ())
 output x = return $ W.tell [T.LogEntry T.LogInfo x]
     
